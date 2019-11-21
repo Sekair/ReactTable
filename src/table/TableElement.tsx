@@ -8,15 +8,13 @@ export interface TableElementProps {
 }
 
 export const TableElement = ({number, text, height, returnHeight}: TableElementProps) => {
-    let elem: HTMLTableRowElement | null;
-    React.useEffect(() => {
-        if (elem == null || height !== 0) {
-            return;
-        }
-        returnHeight(number, elem.offsetHeight);
-    }, [number])
     return (
-        <tr key={number} ref={instance => elem = instance}>
+        <tr key={number} ref={instance => {
+            if (instance == null || height !== 0) {
+                return
+            }
+            returnHeight(number, instance.offsetHeight)
+        }}>
             <td>#{number}</td>
             <td>{text}</td>
         </tr>

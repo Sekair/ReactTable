@@ -16,13 +16,14 @@ export class TableComponent extends React.Component<{}, TableComponentState> {
     constructor(props: {}) {
         super(props);
 
+        const func = this.returnHeight.bind(this);
         let tmp: TableElementProps[] = [];
         for (let i = 0; i < this.componentCount; i++) {
             tmp[i] = {
                 number: i,
                 height: 0,
                 text: this.randomTextGenerator(),
-                returnHeight: this.returnHeight.bind(this)
+                returnHeight: func
             }
         }
         this.state = {
@@ -61,43 +62,56 @@ export class TableComponent extends React.Component<{}, TableComponentState> {
         return result;
     }
 
+    private heightList: {number: number, height: number}[] = [];
     returnHeight(number: number, height: number) {
-        let finded: boolean = false;
-        const before = this.state.itemsBefore.slice();
-        const now = this.state.items.slice();
-        const after = this.state.itemsAfter.slice();
-        for (const item of before) {
-            if (item.number === number) {
-                item.height = height;
-                finded = true;
-                break;
-            }
+        this.heightList[number] = {
+            number: number,
+            height: height
+        };
+        if (number === this.componentCount - 1) {
+            const total = this.state.itemsBefore.concat(this.state.items, this.state.itemsAfter);
+            total.forEach(value => value.height = this.heightList[value.number].height);
+            this.setState({
+                itemsBefore: total,
+                items: [],
+                itemsAfter: []
+            });
+            this.rearrangeElements();
         }
-        if (!finded) {
-            for (const item of now) {
-                if (item.number === number) {
-                    item.height = height;
-                    finded = true;
-                    break;
-                }
-            }
-        }
-        if (!finded) {
-            const after = this.state.itemsAfter.slice();
-            for (const item of after) {
-                if (item.number === number) {
-                    item.height = height;
-                    finded = true;
-                    break
-                }
-            }
-        }
-        this.setState({
-            itemsBefore: before,
-            items: now,
-            itemsAfter: after
-        });
-        this.rearrangeElements(this.scroll, this.clientHeight);
+
+        // const before = this.state.itemsBefore.slice();
+        // for (const item of before) {
+        //     if (item.number === number) {
+        //         item.height = height;
+        //         this.setState({
+        //             itemsBefore: before
+        //         });
+        //         // this.rearrangeElements(this.scroll, this.clientHeight);
+        //         return;
+        //     }
+        // }
+        // const now = this.state.items.slice();
+        // for (const item of now) {
+        //     if (item.number === number) {
+        //         item.height = height;
+        //         this.setState({
+        //             items: now
+        //         });
+        //         // this.rearrangeElements(this.scroll, this.clientHeight);
+        //         return;
+        //     }
+        // }
+        // const after = this.state.itemsAfter.slice();
+        // for (const item of after) {
+        //     if (item.number === number) {
+        //         item.height = height;
+        //         this.setState({
+        //             itemsAfter: after
+        //         });
+        //         // this.rearrangeElements(this.scroll, this.clientHeight);
+        //         return;
+        //     }
+        // }
     }
 
     private scroll: number = 0;
@@ -106,10 +120,10 @@ export class TableComponent extends React.Component<{}, TableComponentState> {
     handleTableScroll(event: React.UIEvent<HTMLTableElement>) {
         this.scroll = event.currentTarget.scrollTop;
         this.clientHeight = event.currentTarget.clientHeight;
-        this.rearrangeElements(event.currentTarget.scrollTop, event.currentTarget.clientHeight);
+        this.rearrangeElements();
     }
 
-    rearrangeElements(scroll: number, clientHeight: number) {
+    rearrangeElements() {
         const before: TableElementProps[] = [];
         const now: TableElementProps[] = [];
         const after: TableElementProps[] = [];
@@ -122,9 +136,9 @@ export class TableComponent extends React.Component<{}, TableComponentState> {
                 continue;
             }
             height += element.height;
-            if (height < scroll) {
+            if (height < this.scroll) {
                 before.push(element);
-            } else if (height > scroll && height < clientHeight + scroll) {
+            } else if (height > this.scroll && height < this.clientHeight + this.scroll) {
                 now.push(element);
             } else {
                 after.push(element);
