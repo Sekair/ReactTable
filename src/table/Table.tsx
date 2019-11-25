@@ -25,6 +25,7 @@ export class Table extends React.Component<TableProps, {}> {
                 </thead>
                 <tbody>
                 <TableElementPlaceholder key={-1} height={topPlaceholderHeight}/>
+                {/* стоило бы отформатировать по-другому ;) */}
                 {this.props.items.map((value, index) => (<TableElement key={index}
                                                                        height={value.height}
                                                                        text={value.text}
